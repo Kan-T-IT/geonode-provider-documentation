@@ -1,0 +1,286 @@
+geonode_provider.hooks.geonode
+==============================
+
+.. py:module:: geonode_provider.hooks.geonode
+
+
+Classes
+-------
+
+.. autoapisummary::
+
+   geonode_provider.hooks.geonode.GeoNodeHook
+
+
+Module Contents
+---------------
+
+.. py:class:: GeoNodeHook(geonode_conn_id: str, source=None)
+
+   Bases: :py:obj:`airflow.hooks.base.BaseHook`
+
+
+   Airflow hook to interact with GeoNode.
+   Methods list:
+   * import_layer: runs the "importlayers" command in the GeoNode container to upload the datasets contents in a specific directory/folder to GeoServer.
+   * publish_layer: publishes a layer uploaded to the database in GeoServer.
+   * update_layer: runs the "updatelayers" command in the GeoNode container so that the layer already uploaded, published and recognized by GeoServer, is now visible in GeoNode.
+   * upload_dataset: uploads a layer in *.zip*, ".shp", "dbf", "shx", "prj" or ".tif" format to GeoNode via API v2.
+   * upload_style: uploads a style in ".sld" format to GeoServer.
+   * update_style: update an existing style.
+   * update_layer_style: assigns an already uploaded style to a layer.
+   * upload_map: creates a map in GeoNode via API v2 from a set of datasets.
+   * upload_document: uploads a document to GeoNode via API v2.
+   * upload_metadata: uploads/sets metadata for a given type of resource (for the moment title and supplementary information).
+   * set_permiss: sets permissions for a given resource.
+   * get_execution_information: gets information/metadata about a performed execution.
+
+
+   .. py:attribute:: conn_name_attr
+      :value: 'geonode_conn_id'
+
+
+
+   .. py:attribute:: default_conn_name
+      :value: 'geonode_default'
+
+
+
+   .. py:attribute:: conn_type
+      :value: 'geonode'
+
+
+
+   .. py:attribute:: hook_name
+      :value: 'GeoNode'
+
+
+
+   .. py:attribute:: conn
+
+
+   .. py:attribute:: extra
+
+
+   .. py:attribute:: base_url
+
+
+   .. py:attribute:: gn_username
+
+
+   .. py:attribute:: gn_password
+
+
+   .. py:attribute:: gn_api_token
+
+
+   .. py:attribute:: gs_username
+
+
+   .. py:attribute:: gs_password
+
+
+   .. py:attribute:: ssh_host
+
+
+   .. py:attribute:: ssh_port
+
+
+   .. py:attribute:: ssh_username
+
+
+   .. py:attribute:: ssh_password
+
+
+   .. py:method:: _get_field(extra_dict, field_name)
+
+
+   .. py:method:: test_connection()
+
+
+   .. py:method:: import_layer(layers_folder_path: str) -> None
+
+      This method allows to update datasets to GeoServer by passing datasets directory. Just works with directories, not with single files.
+      The method uses an SSH connection to execute a Docker command within GeoNode's container.
+
+      :param layers_folder_path: Path to datasets directory/folder.
+
+
+
+   .. py:method:: publish_layer(layer_names) -> None
+
+      This method is utilized to publish a layer to GeoServer by utilizing an API 'POST' request.
+
+      :param layer_names: The dataset name (not title) that must be published. Is possible to pass a list of datasets names to execute this method recursively.
+
+
+
+   .. py:method:: update_layer(layer_names: str)
+
+      The update_layer method is an operator responsible for executing the update of layers.
+      The method uses an SSH connection to execute a Docker command within GeoNode's container.
+
+      :param layer_name: The dataset name (not title) that must be updated. Is possible to pass a list of datasets names to execute this method recursively.
+
+      :raises AirflowException: Raised if an error occurs during the layer update process.
+
+
+
+   .. py:method:: upload_dataset(dataset_path: str) -> str
+
+      This method upload a dataset by GeoNode v2 API.
+      Datasets can be in the following formats:
+      - .zip
+      - .shx, .prj, .shp and .dbf
+      - .tif
+
+      :param dataset_path: The dataset path that must be uploaded. The path can be a directory/folder or a single file.
+
+      :returns: For vector .zip datasets, a dictionary (json) is returned with the ID of the dataset. For individual vector or rasters datasets, the run/execution ID is returned.
+
+
+
+   .. py:method:: upload_style(style_path: str, style_name: str = None) -> None
+
+      Allows to upload a style in '.sld' format.
+
+      :param style_path: Path to ".sld" style file.
+      :param style_name: Optional. Name that the style will have in GeoServer. If isn't defined it will take the name of ".sld" file.
+
+
+
+   .. py:method:: update_style(style_path: str, style_name: str = None) -> None
+
+      Allows to update an existing style in '.sld' format.
+
+      :param style_path: Path to ".sld" style file.
+      :param style_name: Optional. Name that the style will have in GeoServer. If isn't defined it will take the name of ".sld" file.
+
+
+
+   .. py:method:: update_layer_style(layer_name: str, style_name: str) -> None
+
+      This method is employed to update the styles of a layer by utilizing an GeoServer API 'PUT' request.
+
+      :param layer_name: The layer/dataset name (not title) which want to apply the style.
+      :param style_name: The style name (already uploaded) wich want to apply to the layer/dataset.
+
+
+
+   .. py:method:: upload_map(datasets_ids: list, map_title: str) -> str
+
+      The upload_map method is responsible for creating a map in GeoNode via API v2.
+      You must to choice datasets with the same projection and put them into a list. First put uppers datasets and then lowers (o base) datasets.
+
+      :param datasets_ids: List of datasets ids that should make up the map. Sorted from the outermost/upper layer to the lower ones.
+      :param map_title: The title to be placed on the map.
+
+      :returns: This method returns a map ID just created.
+
+
+
+   .. py:method:: upload_document(document_path: str) -> str
+
+      This method uploads a document to GeoNode via API v2.
+
+      :param document_path: Path to document that want to be uploaded.
+
+      :returns: This method returns the document ID that just uploaded.
+
+
+
+   .. py:method:: upload_metadata(resource_type: str, resource_id: int, resource_title: str = None, resource_supplemental_information: str = None) -> None
+
+      The upload_metadata method is designed to update metadata for any resource type on GeoNode by API v2
+      Metadata allowed:
+      - Title
+      - Supplemental information
+
+      :param resource_type: Type of resource wich want to be updated his metadata.
+      Resource type allowed:
+      - dataset
+      - documents
+      - maps
+
+      :param resource_id: ID of the resource whose metadata want to update.
+      :param resource_title: The title to be placed on the resource.
+      :param resource_supplemental_information: The supplemental information to be placed on the resource.
+
+
+
+   .. py:method:: set_permiss(resource_id: int, permiss_data: dict)
+
+      The `set_permiss` method is responsible for setting permissions for a specified resource.
+      It targets the permissions API v2 endpoint and uses a 'PATCH' request to update the permissions based on the provided `permiss_data`.
+
+      :param resource_id: ID of the resource whose permiss want to update.
+      :param permiss_data: JSON/dict object with desired permission settings.
+
+      Example JSON:
+      .. code-block:: json
+          {
+          "users": [
+              {
+                  "id": <user_id>,
+                  "permissions": "none"
+              },
+              {
+                  "id": <user_id>,
+                  "permissions": "view"
+              },
+              {
+                  "id": <user_id>,
+                  "permissions": "download"
+              },
+              {
+                  "id": <user_id>,
+                  "permissions": "edit"
+              },
+              {
+                  "id": <user_id>,
+                  "permissions": "manage"
+              },
+              {
+                  "id": <user_id>,
+                  "permissions": "owner"
+              }
+          ],
+          "groups": [
+              {
+                  "id": <group_id>,
+                  "permissions": "none"
+              },
+              {
+                  "id": <group_id>,
+                  "permissions": "none"
+              }
+          ],
+          "organizations": [
+              {
+              "id": <organization_id>,
+              "permissions": "edit"
+              }
+          ]
+      }
+
+
+
+
+   .. py:method:: _get_execution_information(execution_id: str) -> dict
+
+      Method that gets metadata/information from a given execution. For example when a resource is uploaded.
+
+      :param execution_id: ID of the execution from which want to obtain the information.
+
+
+
+   .. py:method:: get_connection_form_widgets() -> Dict[str, Any]
+      :staticmethod:
+
+
+
+   .. py:method:: get_ui_field_behaviour() -> Dict
+      :staticmethod:
+
+
+

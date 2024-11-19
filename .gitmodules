@@ -1,0 +1,3 @@
+[submodule "geonode-provider"]
+	path = geonode-provider
+	url = https://github.com/Kan-T-IT/geonode-provider.git

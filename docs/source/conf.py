@@ -40,6 +40,7 @@ autoapi_ignore = [
     "**/.github/**",
     "**/.tx/**",
     "**/migrations/**",
+    "**/example_dag.py",
 ]
 
 html_theme = "sphinx_rtd_theme"
